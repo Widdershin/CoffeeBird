@@ -7,7 +7,10 @@ window.main = ->
 
 window.onload = ->
 
-  gravity = 5;
+  window.addEventListener('keyup', ((event) -> Key.onKeyup(event)), false);
+  window.addEventListener('keydown', ((event) -> Key.onKeydown(event)), false);
+
+  gravity = 0.1;
 
   class Game
     start: ->
@@ -32,15 +35,43 @@ window.onload = ->
   class Bird
     constructor: (sprite) ->
       @sprite = sprite
-      @x = 0
+      @x = 15
       @y = 0
+      @vAccel = 0
+      @flapAccel = -5
+      @canFlap = true
 
     update: ->
-      @x += 1
-      @y += gravity
+      if Key.isDown(Key.JUMP)
+        @flap()
+        @canFlap = false
+      else
+        @canFlap = true
+
+      @vAccel += gravity
+      @y += @vAccel
+
+    flap: ->
+      if @canFlap
+        console.log("Flap!")
+        @vAccel = @flapAccel
 
     draw: (ctx) ->
       ctx.drawImage(@sprite, @x, @y)
+
+  Key =
+    _pressed: {}
+
+    JUMP: 32
+
+    isDown: (keyCode) ->
+      @_pressed[keyCode]
+
+    onKeydown: (event) ->
+       @._pressed[event.keyCode] = true
+
+    onKeyup: (event) ->
+      delete @._pressed[event.keyCode]
 
 
   game = new Game()

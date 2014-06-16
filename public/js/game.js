@@ -10,8 +10,14 @@
   };
 
   window.onload = function() {
-    var Bird, Game, gravity, img;
-    gravity = 5;
+    var Bird, Game, Key, gravity, img;
+    window.addEventListener('keyup', (function(event) {
+      return Key.onKeyup(event);
+    }), false);
+    window.addEventListener('keydown', (function(event) {
+      return Key.onKeydown(event);
+    }), false);
+    gravity = 0.1;
     Game = (function() {
       function Game() {}
 
@@ -44,13 +50,29 @@
     Bird = (function() {
       function Bird(sprite) {
         this.sprite = sprite;
-        this.x = 0;
+        this.x = 15;
         this.y = 0;
+        this.vAccel = 0;
+        this.flapAccel = -5;
+        this.canFlap = true;
       }
 
       Bird.prototype.update = function() {
-        this.x += 1;
-        return this.y += gravity;
+        if (Key.isDown(Key.JUMP)) {
+          this.flap();
+          this.canFlap = false;
+        } else {
+          this.canFlap = true;
+        }
+        this.vAccel += gravity;
+        return this.y += this.vAccel;
+      };
+
+      Bird.prototype.flap = function() {
+        if (this.canFlap) {
+          console.log("Flap!");
+          return this.vAccel = this.flapAccel;
+        }
       };
 
       Bird.prototype.draw = function(ctx) {
@@ -60,6 +82,19 @@
       return Bird;
 
     })();
+    Key = {
+      _pressed: {},
+      JUMP: 32,
+      isDown: function(keyCode) {
+        return this._pressed[keyCode];
+      },
+      onKeydown: function(event) {
+        return this._pressed[event.keyCode] = true;
+      },
+      onKeyup: function(event) {
+        return delete this._pressed[event.keyCode];
+      }
+    };
     game = new Game();
     img = new Image();
     img.src = 'public/img/bird.jpg';
