@@ -14,7 +14,7 @@ window.onload = ->
 
   class Game
     start: ->
-      @bird = new Bird(birdSprite)
+      @bird = new Bird(birdSprite, 60, 200)
       @pipes = []
       # @pipe.x = 500
       @width = 600
@@ -27,7 +27,6 @@ window.onload = ->
       @draw()
 
     update: ->
-      # console.log(@timeToPipeSpawn)
       @timeToPipeSpawn--
 
       if @timeToPipeSpawn <= 0
@@ -51,22 +50,38 @@ window.onload = ->
     pipeAt: (x, y) ->
       for pipe in @pipes
         if pipe.x - 24 < x < pipe.x + 24 and Math.abs(pipe.y - y) > pipe.gap / 2
-          alert('collision')
+          console.log('collision')
+
+          ctx = document.getElementById('canvas').getContext('2d')
+          ctx.fillRect(x - 5, y - 5, 10, 10)
 
     spawnPipe: ->
-      console.log("Spawning a pipe")
-      pipe = new Pipe()
+      pipe = new Pipe(pipeSprite)
       pipe.x = @width
       pipe.y = 100 + (Math.random() * 200)
       @pipes.push(pipe)
 
-  class Bird
-    constructor: (sprite) ->
+  class GameObject
+    constructor: (sprite, x = 0, y = 0) ->
       @sprite = sprite
-      @x = 50
-      @y = 0
-      @spriteWidth = sprite.width()
-      @spriteHeight = sprite.height()
+      @x = x
+      @y = y
+      @width = sprite.naturalWidth
+      @height = sprite.naturalHeight
+      @spriteOffsetX = -(@width / 2)
+      @spriteOffsetY = -(@height / 2)
+
+    draw: (ctx) ->
+      ctx.drawImage(@sprite, @x + @spriteOffsetX, @y + @spriteOffsetY)
+
+
+      ctx.fillStyle = 'red'
+      ctx.fillRect(@x - 1, @y - 1, 2, 2)
+
+
+  class Bird extends GameObject
+    constructor: (sprite, x = 15, y = 15) ->
+      super sprite, x, y
 
       @vAccel = 0
       @flapAccel = -5
@@ -84,32 +99,29 @@ window.onload = ->
 
     flap: ->
       if @canFlap
-        console.log("Flap!")
         @vAccel = @flapAccel
 
-    draw: (ctx) ->
-      ctx.drawImage(@sprite, @x, @y)
 
-      ctx.fillStyle = 'red'
-      ctx.fillRect(@x, @y, 2, 2)
-
-  class Pipe
-    constructor: ->
-      @sprite = pipeSprite
-      @x = 0
-      @y = 100
-      @spiteOffsetX = -25
-      @spriteOffsetY = -371
-      @gap = 75
+  class Pipe extends GameObject
+    constructor: (sprite, x = 0, y = 0) ->
+      super sprite, x, y
+      @gap = 85
+      @spriteOffsetY += 25
 
     update: ->
       @x -= 2
 
     draw: (ctx) ->
-      ctx.drawImage(@sprite, @x + @spiteOffsetX, @y + @spriteOffsetY)
+      super ctx
 
       ctx.fillStyle = 'red'
-      ctx.fillRect(@x, @y, 2, 2)
+      ctx.beginPath()
+      ctx.rect @x - 24, @y - @gap / 2, 48, @gap
+      ctx.lineWidth = 3
+      ctx.strokeStyle = 'black'
+      ctx.stroke()
+      # console.log 'finished drawing'
+
 
   Key =
     _pressed: {}
@@ -134,7 +146,14 @@ window.onload = ->
   pipeSprite = new Image()
   pipeSprite.src = 'public/img/pipe2.png'
 
-  pipeSprite.onload = ->
-    console.log("image finished loading, starting game")
-    game.start()
-    main()
+  gameStarted = false
+
+  gameStarter = (event) ->
+    # console.log(event.keyCode)
+    if event.keyCode == 32 and not gameStarted
+      console.log("starting game")
+      game.start()
+      main()
+      gameStarted = true
+
+  window.addEventListener('keydown', ((event) -> gameStarter(event)), false);
