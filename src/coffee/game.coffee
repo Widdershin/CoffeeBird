@@ -14,29 +14,60 @@ window.onload = ->
 
   class Game
     start: ->
-      @bird = new Bird(img)
-      @width = 500
-      @height = 300
+      @bird = new Bird(birdSprite)
+      @pipes = []
+      # @pipe.x = 500
+      @width = 600
+      @height = 400
+      @pipeSpawnTime = 200
+      @timeToPipeSpawn = 0
 
     tick: ->
       @update()
       @draw()
 
     update: ->
+      # console.log(@timeToPipeSpawn)
+      @timeToPipeSpawn--
+
+      if @timeToPipeSpawn <= 0
+        @spawnPipe()
+        @timeToPipeSpawn = @pipeSpawnTime
+
       @bird.update()
+      @pipeAt(@bird.x, @bird.y)
+
+      for pipe in @pipes
+        pipe.update()
 
     draw: ->
       ctx = document.getElementById('canvas').getContext('2d')
       ctx.fillStyle = 'white'
       ctx.fillRect(0, 0, @width, @height)
       @bird.draw(ctx)
+      for pipe in @pipes
+        pipe.draw(ctx)
 
+    pipeAt: (x, y) ->
+      for pipe in @pipes
+        if pipe.x - 24 < x < pipe.x + 24 and Math.abs(pipe.y - y) > pipe.gap / 2
+          alert('collision')
+
+    spawnPipe: ->
+      console.log("Spawning a pipe")
+      pipe = new Pipe()
+      pipe.x = @width
+      pipe.y = 100 + (Math.random() * 200)
+      @pipes.push(pipe)
 
   class Bird
     constructor: (sprite) ->
       @sprite = sprite
-      @x = 15
+      @x = 50
       @y = 0
+      @spriteWidth = sprite.width()
+      @spriteHeight = sprite.height()
+
       @vAccel = 0
       @flapAccel = -5
       @canFlap = true
@@ -59,6 +90,27 @@ window.onload = ->
     draw: (ctx) ->
       ctx.drawImage(@sprite, @x, @y)
 
+      ctx.fillStyle = 'red'
+      ctx.fillRect(@x, @y, 2, 2)
+
+  class Pipe
+    constructor: ->
+      @sprite = pipeSprite
+      @x = 0
+      @y = 100
+      @spiteOffsetX = -25
+      @spriteOffsetY = -371
+      @gap = 75
+
+    update: ->
+      @x -= 2
+
+    draw: (ctx) ->
+      ctx.drawImage(@sprite, @x + @spiteOffsetX, @y + @spriteOffsetY)
+
+      ctx.fillStyle = 'red'
+      ctx.fillRect(@x, @y, 2, 2)
+
   Key =
     _pressed: {}
 
@@ -76,10 +128,13 @@ window.onload = ->
 
   game = new Game()
 
-  img = new Image()
-  img.src = 'public/img/bird.jpg'
+  birdSprite = new Image()
+  birdSprite.src = 'public/img/bird.jpg'
 
-  img.onload = ->
+  pipeSprite = new Image()
+  pipeSprite.src = 'public/img/pipe2.png'
+
+  pipeSprite.onload = ->
     console.log("image finished loading, starting game")
     game.start()
     main()
