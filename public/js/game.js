@@ -105,9 +105,20 @@
         var _ref;
         this["continue"] = false;
         gameStarted = false;
+        this.drawGameOverScreen();
         window.cancelAnimationFrame(currentFrameID);
         delete this.bird;
         return _ref = delete pipe, __indexOf.call(pipes, _ref) >= 0;
+      };
+
+      Game.prototype.drawGameOverScreen = function() {
+        var ctx;
+        ctx = document.getElementById('canvas').getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, this.width, this.height);
+        ctx.fillStyle = 'black';
+        ctx.font = "30px Arial";
+        return ctx.fillText('Game Over', this.width / 2, this.height / 2);
       };
 
       return Game;

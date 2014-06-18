@@ -70,10 +70,23 @@ window.onload = ->
     stop: ->
       @continue = false
       gameStarted = false
+      @drawGameOverScreen()
       window.cancelAnimationFrame currentFrameID
 
       delete @bird
       delete pipe in pipes
+
+
+    drawGameOverScreen: ->
+      ctx = document.getElementById('canvas').getContext('2d')
+      ctx.fillStyle = 'white'
+      ctx.fillRect(0, 0, @width, @height)
+
+      ctx.fillStyle = 'black'
+      ctx.font = "30px Arial"
+      ctx.fillText('Game Over', @width / 2, @height / 2)
+
+
 
 
   class GameObject
