@@ -1,8 +1,12 @@
-game = null;
+game = null
+continueGame = true
+gameStarted = false
 
 window.main = ->
-  window.requestAnimationFrame(main)
-  game.tick()
+  # console.log("main: " + gameStarted)
+  if game.continue
+    currentFrameID = window.requestAnimationFrame(main)
+    game.tick()
 
 
 window.onload = ->
@@ -21,6 +25,7 @@ window.onload = ->
       @height = 400
       @pipeSpawnTime = 200
       @timeToPipeSpawn = 0
+      @continue = true
 
     tick: ->
       @update()
@@ -33,8 +38,10 @@ window.onload = ->
         @spawnPipe()
         @timeToPipeSpawn = @pipeSpawnTime
 
+      if @pipeAt(@bird.x, @bird.y)
+        @stop()
+
       @bird.update()
-      @pipeAt(@bird.x, @bird.y)
 
       for pipe in @pipes
         pipe.update()
@@ -50,16 +57,24 @@ window.onload = ->
     pipeAt: (x, y) ->
       for pipe in @pipes
         if pipe.x - 24 < x < pipe.x + 24 and Math.abs(pipe.y - y) > pipe.gap / 2
-          console.log('collision')
+          return true
 
-          ctx = document.getElementById('canvas').getContext('2d')
-          ctx.fillRect(x - 5, y - 5, 10, 10)
+      false
 
     spawnPipe: ->
       pipe = new Pipe(pipeSprite)
       pipe.x = @width
       pipe.y = 100 + (Math.random() * 200)
       @pipes.push(pipe)
+
+    stop: ->
+      @continue = false
+      gameStarted = false
+      window.cancelAnimationFrame currentFrameID
+
+      delete @bird
+      delete pipe in pipes
+
 
   class GameObject
     constructor: (sprite, x = 0, y = 0) ->
@@ -74,7 +89,7 @@ window.onload = ->
     draw: (ctx) ->
       ctx.drawImage(@sprite, @x + @spriteOffsetX, @y + @spriteOffsetY)
 
-
+    debug_draw: (ctx) ->
       ctx.fillStyle = 'red'
       ctx.fillRect(@x - 1, @y - 1, 2, 2)
 
@@ -105,14 +120,14 @@ window.onload = ->
   class Pipe extends GameObject
     constructor: (sprite, x = 0, y = 0) ->
       super sprite, x, y
-      @gap = 85
+      @gap = 87
       @spriteOffsetY += 25
 
     update: ->
       @x -= 2
 
-    draw: (ctx) ->
-      super ctx
+    debug_draw: (ctx) ->
+      super.ctx
 
       ctx.fillStyle = 'red'
       ctx.beginPath()
@@ -153,7 +168,7 @@ window.onload = ->
     if event.keyCode == 32 and not gameStarted
       console.log("starting game")
       game.start()
-      main()
       gameStarted = true
+      main()
 
   window.addEventListener('keydown', ((event) -> gameStarter(event)), false);
